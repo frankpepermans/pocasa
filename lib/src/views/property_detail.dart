@@ -1,11 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:pocasa/src/views/blocs/overview_bloc.dart';
+import 'package:pocasa/src/views/blocs/listings_bloc.dart';
 
 class PropertyDetailItem extends StatelessWidget {
-  final Property property;
+  final Listing listing;
 
-  PropertyDetailItem({this.property});
+  PropertyDetailItem({this.listing});
 
   @override
   Widget build(BuildContext context) {
@@ -14,8 +15,19 @@ class PropertyDetailItem extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Image.asset(
-          property.imageUrl,
+        CachedNetworkImage(
+          imageUrl: listing.imageUrl,
+          placeholder: (context, url) => Container(
+            child: Column(
+              children: <Widget>[CircularProgressIndicator()],
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+            ),
+            width: dw,
+            height: 240,
+          ),
+          errorWidget: (context, url, error) => Icon(Icons.error),
+          key: Key(listing.imageUrl),
           fit: BoxFit.cover,
           height: 240,
           width: dw,
@@ -25,16 +37,11 @@ class PropertyDetailItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  Text('300.000\$',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2)
-                ],
-              ),
+              Text(listing.price,
+                  textAlign: TextAlign.right,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
@@ -56,7 +63,10 @@ class PropertyDetailItem extends StatelessWidget {
                   Text('1')
                 ],
               ),
-              Text('What an awesome place to live!')
+              Text(listing.summary,
+                  textAlign: TextAlign.right,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2)
             ],
           ),
         )

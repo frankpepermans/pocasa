@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pocasa/src/views/blocs/overview_bloc.dart';
+import 'package:pocasa/src/views/blocs/login_bloc.dart';
+import 'package:pocasa/src/views/blocs/listings_bloc.dart';
 import 'package:pocasa/src/views/overview.dart';
 import 'package:pocasa/src/views/property_listing.dart';
 
@@ -50,11 +51,22 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final OverviewBloc _overviewBloc = OverviewBloc();
+  final LoginBloc _loginBloc = LoginBloc();
+  final ListingsBloc _listingsBloc = ListingsBloc();
+
+  @override
+  void initState() {
+    _loginBloc.add(LoginRequestEvent(
+        client: 'client_9f6a7473c9bbe0e568b5bddbf32d96a5',
+        secret: 'secret_0baf5298064a7c5b639889e001c0558a'));
+
+    super.initState();
+  }
 
   @override
   void dispose() {
-    _overviewBloc.close();
+    _loginBloc.close();
+    _listingsBloc.close();
 
     super.dispose();
   }
@@ -74,8 +86,10 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: BlocProvider(
-          child: PropertyListing(),
-          create: (BuildContext context) => _overviewBloc),
+          child: BlocProvider(
+              child: PropertyListing(),
+              create: (BuildContext context) => _listingsBloc),
+          create: (BuildContext context) => _loginBloc),
     );
   }
 }

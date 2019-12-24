@@ -1,36 +1,59 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:pocasa/src/views/blocs/overview_bloc.dart';
+import 'package:pocasa/src/views/blocs/listings_bloc.dart';
+import 'package:pocasa/src/views/blocs/login_bloc.dart';
 import 'package:pocasa/src/views/property_detail.dart';
 
 class PropertyListing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<OverviewBloc>(context);
+    final loginBloc = BlocProvider.of<LoginBloc>(context);
+    final bloc = BlocProvider.of<ListingsBloc>(context);
+    final controller = ScrollController();
 
     return BlocBuilder(
-        key: Key('overview'),
-        bloc: bloc,
-        builder: (context, OverviewState snapshot) {
-          return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-              scrollDirection: Axis.vertical,
-              child: Column(
-                children: snapshot.images
-                    .map((property) => PropertyListItem(property: property))
-                    .toList(growable: false),
-              ));
+        bloc: loginBloc,
+        builder: (context, LoginState snapshot) {
+          if (snapshot is LoginSuccessState) {
+            bloc.add(ListingsFetchEvent(snapshot.client));
+
+            controller.addListener(() {
+              if (controller.position.atEdge &&
+                  controller.offset == controller.position.maxScrollExtent) {
+                bloc.add(ListingsNextPageEvent(snapshot.client));
+              }
+            });
+
+            return BlocBuilder(
+                bloc: bloc,
+                builder: (context, ListingsState snapshot) {
+                  return SingleChildScrollView(
+                      controller: controller,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 0),
+                      scrollDirection: Axis.vertical,
+                      child: Column(
+                        children: snapshot.listings
+                            .map((property) =>
+                                PropertyListItem(listing: property))
+                            .toList(growable: false),
+                      ));
+                });
+          }
+
+          return Text('loading...');
         });
   }
 }
 
 class PropertyListItem extends StatelessWidget {
-  final Property property;
+  final Listing listing;
 
-  PropertyListItem({this.property});
+  PropertyListItem({this.listing});
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +66,19 @@ class PropertyListItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
             GestureDetector(
-                child: Image.asset(
-                  property.imageUrl,
+                child: CachedNetworkImage(
+                  imageUrl: listing.imageUrl,
+                  placeholder: (context, url) => Container(
+                    child: Column(
+                      children: <Widget>[CircularProgressIndicator()],
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                    ),
+                    width: dw,
+                    height: 240,
+                  ),
+                  errorWidget: (context, url, error) => Icon(Icons.error),
+                  key: Key(listing.imageUrl),
                   fit: BoxFit.cover,
                   height: 220,
                   width: dw,
@@ -53,39 +87,11 @@ class PropertyListItem extends StatelessWidget {
                   final RenderBox box = context.findRenderObject();
                   final pos = box.localToGlobal(Offset.zero);
 
-                  Navigator.of(context).push(PageRouteBuilder(
-                    transitionDuration: const Duration(milliseconds: 400),
-                    pageBuilder: (context, animation, secondaryAnimation) =>
-                        Scaffold(
-                      body: PropertyDetailItem(
-                        property: property,
-                      ),
-                    ),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                      final tween = Tween(
-                              begin: Offset(0.0,
-                                  pos.dy / MediaQuery.of(context).size.height),
-                              end: Offset.zero)
-                          .chain(CurveTween(curve: Curves.easeOut));
-                      final sizeTween = Tween(
-                              begin: (MediaQuery.of(context).size.width - 40) /
-                                  MediaQuery.of(context).size.width,
-                              end: 1.0)
-                          .chain(CurveTween(curve: Curves.easeIn));
-
-                      return ScaleTransition(
-                        scale: animation.drive(sizeTween),
-                        child: SlideTransition(
-                          position: animation.drive(tween),
-                          child: child,
-                        ),
-                      );
-                    },
-                  ));
+                  Navigator.of(context)
+                      .push(DetailPage(property: listing, pos: pos));
                 }),
             Container(
-              child: Text('300.000\$',
+              child: Text(listing.price,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2),
@@ -95,8 +101,7 @@ class PropertyListItem extends StatelessWidget {
               color: Colors.grey[200],
             ),
             Container(
-              child: Text(
-                  'Very nice house with a proper garden where your pets can play all day long',
+              child: Text(listing.summary,
                   textAlign: TextAlign.right,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2),
@@ -125,6 +130,52 @@ class PropertyListItem extends StatelessWidget {
           top: 6,
         ),
       ],
+    );
+  }
+}
+
+class DetailPage extends PageRouteBuilder {
+  final Listing property;
+  final Offset pos;
+
+  DetailPage({this.property, this.pos})
+      : super(
+            transitionDuration: const Duration(milliseconds: 400),
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                build(property),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) =>
+                    buildTransition(
+                        context, animation, secondaryAnimation, child, pos));
+
+  static Widget build(Listing property) => Scaffold(
+        body: PropertyDetailItem(
+          listing: property,
+        ),
+      );
+
+  static AnimatedWidget buildTransition(
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondaryAnimation,
+      Widget child,
+      Offset pos) {
+    final tween = Tween(
+            begin: Offset(0.0, pos.dy / MediaQuery.of(context).size.height),
+            end: Offset.zero)
+        .chain(CurveTween(curve: Curves.easeOut));
+    final sizeTween = Tween(
+            begin: (MediaQuery.of(context).size.width - 40) /
+                MediaQuery.of(context).size.width,
+            end: 1.0)
+        .chain(CurveTween(curve: Curves.easeIn));
+
+    return ScaleTransition(
+      scale: animation.drive(sizeTween),
+      child: SlideTransition(
+        position: animation.drive(tween),
+        child: child,
+      ),
     );
   }
 }

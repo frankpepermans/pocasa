@@ -24,9 +24,14 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   bloc: ^3.0.0-dev.1
   flutter_bloc: ^3.0.0-dev.1
+  http: ^0.12.0
   cupertino_icons: ^0.1.2
   rxdart: ^0.23.1
   google_maps_flutter: ^0.5.21+15
+  xml: ^3.5.0
+  oauth2: ^1.5.0
+  flutter_html: ^0.11.1
+  cached_network_image: 2.0.0-rc.1
 
 dev_dependencies:
   flutter_test:

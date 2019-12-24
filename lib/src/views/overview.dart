@@ -4,17 +4,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pocasa/src/views/blocs/overview_bloc.dart';
+import 'package:pocasa/src/views/blocs/listings_bloc.dart';
 import 'package:rxdart/rxdart.dart';
 
-class Overview extends StatelessWidget {
+/*class Overview extends StatelessWidget {
   final BoxConstraints constraints;
 
   Overview({this.constraints});
 
   @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<OverviewBloc>(context);
+    final bloc = BlocProvider.of<ListingsBloc>(context);
     var lastOffset = .0;
 
     imageCache.clear();
@@ -22,7 +22,7 @@ class Overview extends StatelessWidget {
     return BlocBuilder(
         key: Key('overview'),
         bloc: bloc,
-        builder: (context, OverviewState snapshot) {
+        builder: (context, ListingsState snapshot) {
           final screenResolver = () {
             final controller = ScrollController();
 
@@ -132,4 +132,4 @@ class Overview extends StatelessWidget {
           );
         });
   }
-}
+}*/
