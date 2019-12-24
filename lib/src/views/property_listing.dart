@@ -31,17 +31,15 @@ class PropertyListing extends StatelessWidget {
             return BlocBuilder(
                 bloc: bloc,
                 builder: (context, ListingsState snapshot) {
-                  return SingleChildScrollView(
-                      controller: controller,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 0),
-                      scrollDirection: Axis.vertical,
-                      child: Column(
-                        children: snapshot.listings
-                            .map((property) =>
-                                PropertyListItem(listing: property))
-                            .toList(growable: false),
-                      ));
+                  return ListView.builder(
+                    itemBuilder: (BuildContext context, int index) =>
+                        PropertyListItem(listing: snapshot.listings[index]),
+                    itemCount: snapshot.listings.length,
+                    controller: controller,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                    scrollDirection: Axis.vertical,
+                  );
                 });
           }
 
@@ -140,6 +138,7 @@ class DetailPage extends PageRouteBuilder {
 
   DetailPage({this.property, this.pos})
       : super(
+            opaque: true,
             transitionDuration: const Duration(milliseconds: 400),
             pageBuilder: (context, animation, secondaryAnimation) =>
                 build(property),

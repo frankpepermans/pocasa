@@ -10,9 +10,22 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  final LoginBloc _loginBloc = LoginBloc();
+  final ListingsBloc _listingsBloc = ListingsBloc();
+  bool _initialized = false;
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    if (!_initialized) {
+      _initialized = true;
+
+      print('BIG MAIN');
+      _loginBloc.add(LoginRequestEvent(
+          client: 'client_9f6a7473c9bbe0e568b5bddbf32d96a5',
+          secret: 'secret_0baf5298064a7c5b639889e001c0558a'));
+    }
+
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -27,49 +40,21 @@ class MyApp extends StatelessWidget {
           // is not restarted.
           primarySwatch: Colors.green,
           buttonColor: Colors.pinkAccent),
-      home: MyHomePage(title: 'Find your dream home!'),
+      home: MyHomePage(
+        title: 'Find your dream home!',
+        loginBloc: _loginBloc,
+        listingsBloc: _listingsBloc,
+      ),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class MyHomePage extends StatelessWidget {
+  final LoginBloc loginBloc;
+  final ListingsBloc listingsBloc;
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  final LoginBloc _loginBloc = LoginBloc();
-  final ListingsBloc _listingsBloc = ListingsBloc();
-
-  @override
-  void initState() {
-    _loginBloc.add(LoginRequestEvent(
-        client: 'client_9f6a7473c9bbe0e568b5bddbf32d96a5',
-        secret: 'secret_0baf5298064a7c5b639889e001c0558a'));
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _loginBloc.close();
-    _listingsBloc.close();
-
-    super.dispose();
-  }
+  MyHomePage({Key key, this.title, this.loginBloc, this.listingsBloc})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -83,13 +68,24 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text(title),
       ),
       body: BlocProvider(
           child: BlocProvider(
               child: PropertyListing(),
-              create: (BuildContext context) => _listingsBloc),
-          create: (BuildContext context) => _loginBloc),
+              create: (BuildContext context) => listingsBloc),
+          create: (BuildContext context) => loginBloc),
     );
   }
+
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+  final String title;
 }
