@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pocasa/src/views/blocs/carousel_bloc.dart';
 import 'package:pocasa/src/views/blocs/login_bloc.dart';
 import 'package:pocasa/src/views/blocs/listings_bloc.dart';
 import 'package:pocasa/src/views/overview.dart';
@@ -11,7 +12,6 @@ void main() {
 
 class MyApp extends StatelessWidget {
   final LoginBloc _loginBloc = LoginBloc();
-  final ListingsBloc _listingsBloc = ListingsBloc();
   bool _initialized = false;
 
   // This widget is the root of your application.
@@ -26,35 +26,39 @@ class MyApp extends StatelessWidget {
           secret: 'secret_0baf5298064a7c5b639889e001c0558a'));
     }
 
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-          // This is the theme of your application.
-          //
-          // Try running your application with "flutter run". You'll see the
-          // application has a blue toolbar. Then, without quitting the app, try
-          // changing the primarySwatch below to Colors.green and then invoke
-          // "hot reload" (press "r" in the console where you ran "flutter run",
-          // or simply save your changes to "hot reload" in a Flutter IDE).
-          // Notice that the counter didn't reset back to zero; the application
-          // is not restarted.
-          primarySwatch: Colors.green,
-          buttonColor: Colors.pinkAccent),
-      home: MyHomePage(
-        title: 'Find your dream home!',
-        loginBloc: _loginBloc,
-        listingsBloc: _listingsBloc,
-      ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<LoginBloc>(
+          create: (BuildContext context) => _loginBloc,
+        ),
+        BlocProvider<ListingsBloc>(
+          create: (BuildContext context) => ListingsBloc(),
+        ),
+        BlocProvider<CarouselBloc>(
+          create: (BuildContext context) => CarouselBloc(),
+        )
+      ],
+      child: MaterialApp(
+          title: 'Flutter Demo',
+          theme: ThemeData(
+              // This is the theme of your application.
+              //
+              // Try running your application with "flutter run". You'll see the
+              // application has a blue toolbar. Then, without quitting the app, try
+              // changing the primarySwatch below to Colors.green and then invoke
+              // "hot reload" (press "r" in the console where you ran "flutter run",
+              // or simply save your changes to "hot reload" in a Flutter IDE).
+              // Notice that the counter didn't reset back to zero; the application
+              // is not restarted.
+              primarySwatch: Colors.green,
+              buttonColor: Colors.pinkAccent),
+          home: MyHomePage(title: 'Find your dream home!')),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
-  final LoginBloc loginBloc;
-  final ListingsBloc listingsBloc;
-
-  MyHomePage({Key key, this.title, this.loginBloc, this.listingsBloc})
-      : super(key: key);
+  MyHomePage({Key key, this.title}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -70,11 +74,7 @@ class MyHomePage extends StatelessWidget {
         // the App.build method, and use it to set our appbar title.
         title: Text(title),
       ),
-      body: BlocProvider(
-          child: BlocProvider(
-              child: PropertyListing(),
-              create: (BuildContext context) => listingsBloc),
-          create: (BuildContext context) => loginBloc),
+      body: PropertyListing(),
     );
   }
 

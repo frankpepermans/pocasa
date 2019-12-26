@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pocasa/src/views/blocs/carousel_bloc.dart';
 
 import 'package:pocasa/src/views/blocs/listings_bloc.dart';
 import 'package:pocasa/src/views/blocs/login_bloc.dart';
+import 'package:pocasa/src/views/property_carousel.dart';
 import 'package:pocasa/src/views/property_detail.dart';
 
 class PropertyListing extends StatelessWidget {
@@ -55,8 +57,11 @@ class PropertyListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bloc = BlocProvider.of<CarouselBloc>(context);
     final dw = MediaQuery.of(context).size.width - 40;
-    const iconData = IconData(0xe800, fontFamily: 'MyFlutterApp');
+    const iconData = IconData(0xe800, fontFamily: 'MyFlutterApp');print('list draw');
+
+    bloc.add(const CarouselPushEvent());
 
     return Stack(
       children: [
@@ -64,29 +69,19 @@ class PropertyListItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
             GestureDetector(
-                child: CachedNetworkImage(
-                  imageUrl: listing.imageUrl,
-                  placeholder: (context, url) => Container(
-                    child: Column(
-                      children: <Widget>[CircularProgressIndicator()],
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                    ),
-                    width: dw,
-                    height: 240,
-                  ),
-                  errorWidget: (context, url, error) => Icon(Icons.error),
-                  key: Key(listing.imageUrl),
-                  fit: BoxFit.cover,
-                  height: 220,
-                  width: dw,
+                child: PropertyCarousel(
+                  listing,
                 ),
                 onTap: () {
                   final RenderBox box = context.findRenderObject();
                   final pos = box.localToGlobal(Offset.zero);
 
-                  Navigator.of(context)
-                      .push(DetailPage(property: listing, pos: pos));
+                  bloc.add(const CarouselPushEvent());
+
+                  Navigator.of(context).push(DetailPage(
+                    property: listing,
+                    pos: pos,
+                  ));
                 }),
             Container(
               child: Text(listing.price,

@@ -62,6 +62,8 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
       return json.decode(response.body);
     }, onError: (e, s) => print('listings oops! $e $s'));
 
+    //print(json.encode(list));
+
     if (list == null || list.length < _pageSize) {
       _hasNext = false;
     }
@@ -77,7 +79,10 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
                 : [entry['listing']])
             .map((entry) => Listing(
                 index: state.listings.length + index++,
-                imageUrl: entry['media'].first['url'],
+                images: entry['media']
+                    .map((media) => media['url'])
+                    .cast<String>()
+                    .toList(growable: false),
                 price: entry['priceDetails']['displayPrice'],
                 summary: entry['headline']))
       ]);
@@ -118,8 +123,9 @@ class ListingsPageState implements ListingsState {
 }
 
 class Listing {
-  final String imageUrl, price, summary;
+  final List<String> images;
+  final String price, summary;
   final int index;
 
-  const Listing({this.index, this.imageUrl, this.price, this.summary});
+  const Listing({this.index, this.images, this.price, this.summary});
 }
