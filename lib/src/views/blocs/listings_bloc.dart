@@ -22,7 +22,7 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
 
     if (event is ListingsNextPageEvent) {
       if (!_hasNext) return;
-      print('NEXT PAGE');
+
       _currentPage++;
 
       client = event.client;
@@ -32,7 +32,9 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
       client = event.client;
       _hasInitialFetch = true;
     }
-    print('Page: $_currentPage');
+
+    //yield ListingsLoadingState(listings: state.listings);
+
     final List list = await client
         .post('https://api.domain.com.au/v1/listings/residential/_search',
             headers: {'content-type': 'application/json'},
@@ -44,11 +46,11 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
               "minCarspaces": 0,
               "locations": [
                 {
-                  "state": "SA",
+                  "state": "NSW",
                   "region": "",
                   "area": "",
                   "suburb": "",
-                  "postCode": "",
+                  "postCode": "2481",
                   "includeSurroundingSuburbs": false
                 }
               ],
@@ -106,6 +108,13 @@ class ListingsNextPageEvent implements ListingsEvent {
 
 abstract class ListingsState {
   List<Listing> get listings;
+}
+
+class ListingsLoadingState implements ListingsState {
+  @override
+  final List<Listing> listings;
+
+  ListingsLoadingState({this.listings});
 }
 
 class ListingsIdleState implements ListingsState {

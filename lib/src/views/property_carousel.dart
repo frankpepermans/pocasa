@@ -22,12 +22,14 @@ class PropertyCarousel extends StatelessWidget {
   Widget build(BuildContext context) {
     final bloc = BlocProvider.of<CarouselBloc>(context);
     final dw = MediaQuery.of(context).size.width - 40;
-    final BehaviorSubject<int> pageController = BehaviorSubject<int>.seeded(0);
+    final StreamController<int> pageController = StreamController<int>();
 
     return BlocBuilder(
         bloc: bloc,
         builder: (context, CarouselState snapshot) {
           final page = snapshot.indices[listing] ?? 0;
+
+          pageController.add(page);
 
           final child = Stack(
             children: [
@@ -64,7 +66,7 @@ class PropertyCarousel extends StatelessWidget {
                 right: 0,
                 bottom: 12,
                 child: StreamBuilder(
-                  stream: pageController,
+                  stream: pageController.stream,
                   builder: (context, AsyncSnapshot<int> snapshot) =>
                       _ImageIndexIndicatorWidget(listing, snapshot.data ?? 1),
                 ),
@@ -87,21 +89,17 @@ class _ImageIndexIndicatorWidget extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    print(page);
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(
-          listing.images.length,
-          (index) => Container(
-                child: Icon(
-                  (index == page) ? Icons.trip_origin : Icons.brightness_1,
-                  color: Colors.white,
-                  size: 12,
-                ),
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-              )).toList(growable: false),
-    );
-  }
+  Widget build(BuildContext context) => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(
+            listing.images.length,
+            (index) => Container(
+                  child: Icon(
+                    (index == page) ? Icons.trip_origin : Icons.brightness_1,
+                    color: Colors.white,
+                    size: 12,
+                  ),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                )).toList(growable: false),
+      );
 }

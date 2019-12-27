@@ -32,17 +32,15 @@ class PropertyListing extends StatelessWidget {
 
             return BlocBuilder(
                 bloc: bloc,
-                builder: (context, ListingsState snapshot) {
-                  return ListView.builder(
-                    itemBuilder: (BuildContext context, int index) =>
-                        PropertyListItem(listing: snapshot.listings[index]),
-                    itemCount: snapshot.listings.length,
-                    controller: controller,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                    scrollDirection: Axis.vertical,
-                  );
-                });
+                builder: (context, ListingsState snapshot) => ListView.builder(
+                      itemBuilder: (BuildContext context, int index) =>
+                          PropertyListItem(listing: snapshot.listings[index]),
+                      itemCount: snapshot.listings.length,
+                      controller: controller,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 0),
+                      scrollDirection: Axis.vertical,
+                    ));
           }
 
           return Text('loading...');
@@ -59,7 +57,7 @@ class PropertyListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final bloc = BlocProvider.of<CarouselBloc>(context);
     final dw = MediaQuery.of(context).size.width - 40;
-    const iconData = IconData(0xe800, fontFamily: 'MyFlutterApp');print('list draw');
+    const iconData = IconData(0xe800, fontFamily: 'MyFlutterApp');
 
     bloc.add(const CarouselPushEvent());
 
