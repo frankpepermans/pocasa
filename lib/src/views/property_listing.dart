@@ -1,10 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pocasa/src/views/blocs/carousel_bloc.dart';
+import 'package:rxdart/rxdart.dart';
 
+import 'package:pocasa/src/views/blocs/carousel_bloc.dart';
 import 'package:pocasa/src/views/blocs/listings_bloc.dart';
 import 'package:pocasa/src/views/blocs/login_bloc.dart';
 import 'package:pocasa/src/views/property_carousel.dart';
@@ -15,49 +15,116 @@ class PropertyListing extends StatelessWidget {
   Widget build(BuildContext context) {
     final loginBloc = BlocProvider.of<LoginBloc>(context);
     final bloc = BlocProvider.of<ListingsBloc>(context);
+    final onPosition = BehaviorSubject<double>();
+    final onScrollEnd = BehaviorSubject<bool>.seeded(true);
     final controller = ScrollController();
+    var factor = 1.0;
 
-    return BlocBuilder(
-        bloc: loginBloc,
-        builder: (context, LoginState snapshot) {
-          if (snapshot is LoginSuccessState) {
-            bloc.add(ListingsFetchEvent(snapshot.client));
+    onScrollEnd
+        .switchMap((_) => loginBloc)
+        .whereType<LoginSuccessState>()
+        .map((state) => ListingsNextPageEvent(state.client))
+        .listen(bloc.add);
 
-            controller.addListener(() {
-              if (controller.position.atEdge &&
-                  controller.offset == controller.position.maxScrollExtent) {
-                bloc.add(ListingsNextPageEvent(snapshot.client));
-              }
-            });
+    controller.addListener(() {
+      onPosition.add(controller.offset);
+
+      if (controller.position.atEdge &&
+          controller.offset == controller.position.maxScrollExtent) {
+        onScrollEnd.add(true);
+      }
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        StreamBuilder(
+          stream: onPosition.stream.pairwise(),
+          builder:
+              (BuildContext context, AsyncSnapshot<Iterable<double>> snapshot) {
+            final data = snapshot?.data ?? const <double>[.0, .0];
+            final opacity = 1.0 * factor;
+
+            factor -= (data.last - data.first) / 50;
+
+            factor = factor.clamp(.0, 1.0);
 
             return BlocBuilder(
                 bloc: bloc,
-                builder: (context, ListingsState snapshot) => ListView.builder(
-                      itemBuilder: (BuildContext context, int index) =>
-                          PropertyListItem(listing: snapshot.listings[index]),
-                      itemCount: snapshot.listings.length,
-                      controller: controller,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 0),
-                      scrollDirection: Axis.vertical,
-                    ));
-          }
+                builder: (context, ListingsState snapshot) {
+                  if (loginBloc.state is! LoginSuccessState) {
+                    return Text('loading');
+                  }
 
-          return Text('loading...');
-        });
+                  final LoginSuccessState loginState = loginBloc.state;
+                  final chips = snapshot.params.asList();
+                  final rowCount = (chips.length ~/ 3) + 1;
+
+                  return Container(
+                    constraints: BoxConstraints.lerp(
+                        BoxConstraints(maxHeight: .0),
+                        BoxConstraints(maxHeight: 50.0 * rowCount + 24.0),
+                        factor),
+                    color: Colors.white10,
+                    child: Opacity(
+                      opacity: opacity,
+                      child: Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        child: Wrap(
+                          runSpacing: 0,
+                          spacing: 12,
+                          children: chips
+                              .map((param) => GestureDetector(
+                                    child: Chip(
+                                      avatar: Icon(Icons.close),
+                                      label: Text(param.text),
+                                    ),
+                                    onTap: () {
+                                      controller.jumpTo(.0);
+
+                                      bloc.add(ListingsSearchParamsEvent(
+                                          loginState.client,
+                                          params: param
+                                              .deleteHandler(snapshot.params)));
+                                    },
+                                  ))
+                              .toList(growable: false),
+                        ),
+                      ),
+                    ),
+                  );
+                });
+          },
+        ),
+        Expanded(
+            child: BlocBuilder(
+          bloc: bloc,
+          builder: (context, ListingsState snapshot) => ListView.builder(
+            itemBuilder: (BuildContext context, int index) => PropertyListItem(
+              listing: snapshot.listings[index],
+            ),
+            itemCount: snapshot.listings.length,
+            controller: controller,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+            scrollDirection: Axis.vertical,
+          ),
+        ))
+      ],
+    );
   }
 }
 
 class PropertyListItem extends StatelessWidget {
+  final Key key;
   final Listing listing;
 
-  PropertyListItem({this.listing});
+  PropertyListItem({this.listing, this.key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final bloc = BlocProvider.of<CarouselBloc>(context);
     final dw = MediaQuery.of(context).size.width - 40;
-    const iconData = IconData(0xe800, fontFamily: 'MyFlutterApp');
 
     bloc.add(const CarouselPushEvent());
 
@@ -68,7 +135,7 @@ class PropertyListItem extends StatelessWidget {
           children: <Widget>[
             GestureDetector(
                 child: PropertyCarousel(
-                  listing,
+                  listing
                 ),
                 onTap: () {
                   final RenderBox box = context.findRenderObject();
@@ -110,7 +177,7 @@ class PropertyListItem extends StatelessWidget {
                 color: Colors.white, shape: CircleBorder()),
             child: IconButton(
               icon: Icon(
-                iconData,
+                Icons.favorite,
                 size: 16,
               ),
               onPressed: () => print('like!'),

@@ -7,7 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:pocasa/src/views/blocs/carousel_bloc.dart';
 import 'package:pocasa/src/views/blocs/listings_bloc.dart';
-import 'package:rxdart/rxdart.dart';
 
 class PropertyCarousel extends StatelessWidget {
   final Listing listing;
@@ -46,6 +45,7 @@ class PropertyCarousel extends StatelessWidget {
                   index: page,
                   itemBuilder: (BuildContext context, int index) =>
                       CachedNetworkImage(
+                    key: Key(listing.images[index]),
                     imageUrl: listing.images[index],
                     placeholder: (context, url) => Container(
                       child: Column(

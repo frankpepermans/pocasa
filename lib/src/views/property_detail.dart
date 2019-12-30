@@ -10,52 +10,51 @@ class PropertyDetailItem extends StatelessWidget {
   PropertyDetailItem({this.listing});
 
   @override
-  Widget build(BuildContext context) {
-    final dw = MediaQuery.of(context).size.width;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        PropertyCarousel(listing),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(listing.price,
-                  textAlign: TextAlign.right,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  IconButton(
-                    icon: Icon(
-                      Icons.hotel,
-                    ),
-                    onPressed: () => print('like!'),
-                    color: Colors.black,
-                  ),
-                  Text('3'),
-                  IconButton(
-                    icon: Icon(
-                      Icons.restaurant,
-                    ),
-                    onPressed: () => print('like!'),
-                    color: Colors.black,
-                  ),
-                  Text('1')
-                ],
-              ),
-              Text(listing.summary,
-                  textAlign: TextAlign.right,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2)
-            ],
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          PropertyCarousel(
+            listing,
           ),
-        )
-      ],
-    );
-  }
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(listing.price,
+                    textAlign: TextAlign.right,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    IconButton(
+                      icon: Icon(
+                        Icons.hotel,
+                      ),
+                      onPressed: () => print('like!'),
+                      color: Colors.black,
+                    ),
+                    Text('3'),
+                    IconButton(
+                      icon: Icon(
+                        Icons.restaurant,
+                      ),
+                      onPressed: () => print('like!'),
+                      color: Colors.black,
+                    ),
+                    Text('1')
+                  ],
+                ),
+                Text(listing.summary,
+                    textAlign: TextAlign.right,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2)
+              ],
+            ),
+          )
+        ],
+      );
 }

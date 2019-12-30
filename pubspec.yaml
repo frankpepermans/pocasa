@@ -45,9 +45,3 @@ dev_dependencies:
 # The following section is specific to Flutter.
 flutter:
   uses-material-design: true
-  fonts:
-    - family:  MyFlutterApp
-      fonts:
-        - asset: fonts/MyFlutterApp.ttf
-  assets:
-    - assets/
